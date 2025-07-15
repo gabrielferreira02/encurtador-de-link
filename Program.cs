@@ -1,5 +1,9 @@
+using EncurtadorUrl.Controllers;
 using EncurtadorUrl.Data;
+using EncurtadorUrl.Handlers;
+using EncurtadorUrl.Services;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +19,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
 });
+builder.Services.AddScoped<IGenerateUrlCodeHandler, GenerateUrlCodeHandler>();
+builder.Services.AddScoped<IUrlService, UrlService>();
 
 var app = builder.Build();
 
@@ -22,10 +28,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
 
-
+app.AddUrlRoutes();
 
 app.Run();
