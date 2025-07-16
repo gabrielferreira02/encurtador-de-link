@@ -17,7 +17,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
 });
 builder.Services.AddScoped<IGenerateUrlCodeHandler, GenerateUrlCodeHandler>();
 builder.Services.AddScoped<IUrlService, UrlService>();
@@ -28,7 +28,19 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.MapScalarApiReference(options => 
+    {
+        options.Servers =
+        [
+            new ScalarServer("http://localhost:5140")
+        ];
+    });
+}
+
+{
+    var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
 }
 
 app.UseHttpsRedirection();
